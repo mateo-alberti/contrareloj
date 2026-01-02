@@ -1,0 +1,36 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Ensure contrareloj.html is served as index
+        run: |
+          if [ -f contrareloj.html ]; then
+            cp contrareloj.html index.html
+            echo "Copied contrareloj.html -> index.html"
+          else
+            echo "Error: contrareloj.html not found in repo root" >&2
+            exit 1
+          fi
+
+      - name: Prepare artifact for Pages
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: ./
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v1
