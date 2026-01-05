@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carta Contrareloj</title>
+    <title>Trivia Pro - 1100+ Retos</title>
     <style>
         :root {
             --primary: #4f46e5;
             --success: #22c55e;
-            --bg: #e5e7eb;
-            --card-bg: #fffdfa; /* Color papel */
+            --bg: #d1d5db;
+            --card-bg: #fffdfa;
             --text: #1f2937;
         }
 
         body {
-            font-family: 'Courier New', Courier, monospace; /* Fuente estilo máquina de escribir */
+            font-family: 'Courier New', Courier, monospace;
             background-color: var(--bg);
             color: var(--text);
             display: flex;
@@ -26,7 +26,7 @@
         }
 
         .container {
-            max-width: 400px;
+            max-width: 420px;
             width: 100%;
             text-align: center;
         }
@@ -34,132 +34,158 @@
         #timer {
             font-size: 3.5rem;
             font-weight: bold;
-            margin: 10px 0;
-            color: #374151;
+            margin: 5px 0;
+            color: #111827;
+            text-shadow: 1px 1px 0px white;
         }
 
-        /* Estilo de la Carta Física */
+        #counter {
+            font-size: 0.75rem;
+            color: #4b5563;
+            margin-bottom: 10px;
+            font-weight: bold;
+            background: rgba(255,255,255,0.5);
+            padding: 5px 10px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
         .physical-card {
             background: var(--card-bg);
-            padding: 30px;
+            padding: 25px;
             border-radius: 2px;
-            box-shadow: 5px 5px 15px rgba(0,0,0,0.1);
-            border: 1px solid #d1d5db;
-            margin-bottom: 30px;
+            box-shadow: 8px 8px 0px rgba(0,0,0,0.1);
+            border: 1px solid #9ca3af;
+            margin-bottom: 20px;
             position: relative;
-            min-height: 300px;
+            min-height: 380px;
         }
 
-        /* Líneas decorativas de libreta */
         .physical-card::before {
             content: '';
             position: absolute;
-            left: 40px;
+            left: 35px;
             top: 0;
             bottom: 0;
-            width: 2px;
-            background: rgba(239, 68, 68, 0.2);
+            width: 1px;
+            border-left: 2px double rgba(239, 68, 68, 0.3);
         }
 
         .options-list {
             list-style: none;
             padding: 0;
-            margin: 20px 0;
+            margin: 15px 0;
             text-align: left;
         }
 
         .option-item {
-            padding: 15px 10px 15px 50px;
-            margin: 10px 0;
-            border-bottom: 1px dashed #ccc;
+            padding: 12px 10px 12px 45px;
+            margin: 5px 0;
+            border-bottom: 1px solid #eee;
             cursor: pointer;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: bold;
             transition: all 0.2s;
-            border-radius: 4px;
             user-select: none;
+            line-height: 1.2;
         }
 
-        .option-item:hover {
-            background-color: rgba(0,0,0,0.03);
-        }
-
-        /* Clase cuando se marca como logrado */
         .option-item.done {
             background-color: var(--success);
             color: white;
-            border-bottom-color: transparent;
             text-decoration: line-through;
+            border-radius: 4px;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
         button {
-            background-color: #374151;
-            color: white;
-            border: none;
-            padding: 15px 30px;
+            border: 2px solid #374151;
+            padding: 15px;
             font-size: 1rem;
             font-weight: bold;
-            border-radius: 4px;
+            border-radius: 8px;
             cursor: pointer;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            box-shadow: 4px 4px 0px #374151;
+            transition: all 0.1s;
         }
 
-        button:hover {
-            background-color: #000;
+        .btn-main { background-color: #374151; color: white; }
+        .btn-reset { background-color: #f3f4f6; color: #374151; font-size: 0.7rem; box-shadow: 2px 2px 0px #374151;}
+        
+        button:active {
+            transform: translate(2px, 2px);
+            box-shadow: 0px 0px 0px #374151;
         }
 
-        .timer-warning {
-            color: #ef4444 !important;
-        }
+        .timer-warning { color: #ef4444 !important; animation: blink 0.5s infinite; }
+        @keyframes blink { 50% { opacity: 0.5; } }
     </style>
 </head>
 <body>
 
     <div class="container">
+        <div id="counter">Cargando mazo...</div>
         <div id="timer">30</div>
         
         <div class="physical-card">
-            <h2 style="margin-top:0; font-size: 1rem; color: #9ca3af;">Contrareloj</h2>
-            <ul id="options-list" class="options-list">
-                </ul>
+            <h2 style="margin-top:0; font-size: 0.8rem; color: #6b7280; letter-spacing: 2px;">CARTA DE DESAFÍOS</h2>
+            <ul id="options-list" class="options-list"></ul>
         </div>
 
-        <button onclick="refreshApp()">GENERAR NUEVA TARJETA</button>
+        <div class="controls">
+            <button class="btn-main" onclick="nextRound()">SIGUIENTE RONDA</button>
+            <button class="btn-reset" onclick="hardReset()">RESETEAR TODO EL MAZO</button>
+        </div>
     </div>
 
     <script>
-        const database = {
+        const originalData = {
             "peliculas": ["Troya", "Quien quiere ser millonario", "Batman inicia", "El Padrino", "Inception", "Pulp Fiction", "Forrest Gump", "Matrix", "Parasite", "Interestelar", "Gladiador", "El club de la pelea", "La lista de Schindler", "El Rey León", "Jurassic Park", "Titanic", "Avatar", "El resplandor", "Ciudadano Kane", "Psicosis", "Casablanca", "El bueno el malo y el feo", "La naranja mecánica", "Toy Story", "Star Wars: Una nueva esperanza", "Volver al futuro", "El silencio de los inocentes", "Rescatando al soldado Ryan", "La vida es bella", "El viaje de Chihiro", "Coco", "Spider-Man: Into the Spider-Verse", "Guasón", "Parque Jurásico", "Tiburón", "E.T. el extraterrestre", "Los siete samuráis", "Sueño de fuga", "Bastardos sin gloria", "Django desencadenado", "Whiplash", "La la land", "Mad Max: Furia en el camino", "Parásitos", "Sin lugar para los débiles", "El laberinto del fauno", "Amélie", "La gran estafa", "Los infiltrados", "Belleza americana", "Corazón valiente", "El lobo de Wall Street", "El gran hotel Budapest", "Blade Runner 2049", "Arrival", "Duna", "Gran Torino", "Million Dollar Baby", "Memento", "Eterno resplandor de una mente sin recuerdos", "El truco final", "Batman: El caballero de la noche", "Alien el octavo pasajero", "Terminator 2", "Depredador", "Duro de matar", "Rocky", "Rambo", "El sexto sentido", "Los sospechosos de siempre", "Seven", "Cabo de miedo", "Perros de la calle", "Kill Bill", "Taxi Driver", "Toro salvaje", "Cara cortada", "Buenos muchachos", "Casino", "El irlandés", "Uno de los nuestros", "Los imperdonables", "La milla verde", "Cadena de favores", "El show de Truman", "Más allá de los sueños", "En busca de la felicidad", "La sociedad de los poetas muertos", "Despertares", "Patch Adams", "Good Will Hunting", "Luz de luna", "Roma", "Todo sobre mi madre", "Hable con ella", "El secreto de sus ojos", "Relatos salvajes", "Amores perros", "Y tu mamá también", "El abrazo de la serpiente"],
             "geografia": ["Monte Everest", "Río Amazonas", "Desierto del Sahara", "Gran Barrera de Coral", "Islandia", "Canal de Panamá", "Cordillera de los Andes", "Lago Baikal", "Tokio", "Selva Negra", "Estrecho de Gibraltar", "Cataratas del Iguazú", "Groenlandia", "Sídney", "El Cairo", "Montes Urales", "Río Nilo", "Patagonia", "Archipiélago de Galápagos", "Himalaya", "Monte Fuji", "Gran Cañón", "Cataratas del Niágara", "Mar Muerto", "Mar Caspio", "Polo Sur", "Desierto de Atacama", "Monte Kilimanjaro", "Río Yangtsé", "Río Misisipi", "Península Ibérica", "Islas Malvinas", "Lago Titicaca", "Salar de Uyuni", "Ciudad del Cabo", "Estrecho de Magallanes", "Mar Mediterráneo", "Alpes Suizos", "Pirineos", "Monte Elbrús", "Delta del Mekong", "Ganges", "Bahía de Ha Long", "Capadocia", "Petra", "Machu Picchu", "Isla de Pascua", "Madagascar", "Nueva Zelanda", "Tasmania", "Estrecho de Bering", "Mar Caribe", "Golfo Pérsico", "Península de Yucatán", "Cascadas Victoria", "Desierto de Gobi", "Río Danubio", "Río Rin", "Río Sena", "Río Támesis", "Monte Blanco", "Aconcagua", "Denali", "Mauna Kea", "Fosa de las Marianas", "Mar de Coral", "Isla de Java", "Borneo", "Sumatra", "Sri Lanka", "Cerdeña", "Sicilia", "Creta", "Islandia", "Irlanda", "Reino Unido", "Chipre", "Malta", "Estambul", "Moscú", "Ciudad de México", "Buenos Aires", "San Francisco", "Vancouver", "Río de Janeiro", "Lagos", "Nairobi", "Bangkok", "Singapur", "Seúl", "Mumbai", "Dubái", "Casablanca", "Estocolmo", "Oslo", "Helsinki", "Copenhague", "Ámsterdam", "Viena", "Praga"],
-            "historia": ["Revolución Francesa", "Caída del Muro de Berlín", "Imperio Romano", "Revolución Industrial", "Segunda Guerra Mundial", "La Peste Negra", "Descubrimiento de América", "Independencia de EE.UU.", "Guerra Fría", "Renacimiento", "Antiguo Egipto", "Batalla de Waterloo", "La Gran Depresión", "Tratado de Versalles", "Guerra de los Cien Años", "Revolución Rusa", "Caída de Constantinopla", "Era Meiji", "Mesopotamia", "Guerra de Vietnam", "Imperio Azteca", "Imperio Inca", "Grecia Clásica", "Guerra de Troya", "Alejandro Magno", "Julio César", "Napoleón Bonaparte", "Cruzadas", "Guerra de los Treinta Años", "Independencia de México", "Simón Bolívar", "Revolución Cubana", "Apartheid", "Guerra Civil Española", "Guerra de Corea", "Bombardeo de Hiroshima", "Atentado Torres Gemelas", "Reforma Protestante", "Ilustración", "Guerra del Peloponeso", "Imperio Otomano", "Dinastía Ming", "Samuráis", "Vikingos", "Magna Carta", "Guerra Civil Estadounidense", "Hundimiento del Titanic", "Llegada del hombre a la Luna", "Revolución Mexicana", "Batalla de Termópilas", "Asesinato de JFK", "Guerra del Golfo", "Primavera Árabe", "Revolución Rusa", "Marcha sobre Roma", "Guerra de las Dos Rosas", "Imperio Mongol", "Gengis Khan", "Marco Polo", "Cristóbal Colón", "Hernán Cortés", "Leonardo da Vinci", "Miguel Ángel", "Reina Victoria", "Juana de Arco", "Luis XIV", "Catalina la Grande", "Independencia de la India", "Mahatma Gandhi", "Nelson Mandela", "Martin Luther King", "Guerra de los Seis Días", "Guerra de Malvinas", "Canal de Suez", "Batalla de Stalingrado", "Día D", "Pearl Harbor", "Holocausto", "Juicios de Núremberg", "Creación de la ONU", "Guerra de Afganistán", "Revolución de Terciopelo", "Unificación Alemana", "Unificación Italiana", "Paz de Westfalia", "Batalla de Gettysburg", "Imperio Bizantino", "Ruta de la Seda", "Pacto de Varsovia", "OTAN", "Crisis de los Misiles", "Guerra de Opio", "Batalla de Lepanto", "Invencible Armada", "Guerra de Crimea", "Revolución de los Claveles", "Batalla de Ayacucho", "Independencia de Uruguay", "Independencia de Brasil"],
+            "historia": ["Revolución Francesa", "Caída del Muro de Berlín", "Imperio Romano", "Revolución Industrial", "Segunda Guerra Mundial", "La Peste Negra", "Descubrimiento de América", "Independencia de EE.UU.", "Guerra Fría", "Renacimiento", "Antiguo Egipto", "Batalla de Waterloo", "La Gran Depresión", "Tratado de Versalles", "Guerra de los Cien Años", "Revolución Rusa", "Caída de Constantinopla", "Era Meiji", "Mesopotamia", "Guerra de Vietnam", "Imperio Azteca", "Imperio Inca", "Grecia Clásica", "Guerra de Troya", "Alejandro Magno", "Julio César", "Napoleón Bonaparte", "Cruzadas", "Guerra de los Treinta Años", "Independencia de México", "Simón Bolívar", "Revolución Cubana", "Apartheid", "Guerra Civil Española", "Guerra de Corea", "Bombardeo de Hiroshima", "Atentado Torres Gemelas", "Reforma Protestante", "Ilustración", "Guerra del Peloponeso", "Imperio Otomano", "Dinastía Ming", "Samuráis", "Vikingos", "Magna Carta", "Guerra Civil Estadounidense", "Hundimiento del Titanic", "Llegada del hombre a la Luna", "Revolución Mexicana", "Batalla de Termópilas", "Asesinato de JFK", "Guerra del Golfo", "Primavera Árabe", "Revolución Rusa", "Marcha sobre Roma", "Guerra de las Dos Rosas", "Imperio Mongol", "Gengis Khan", "Marco Polo", "Cristóbal Colón", "Hernán Cortés", "Leonardo da Vinci", "Miguel Ángel", "Reina Victoria", "Juana de Arco", "Luis XIV", "Catalina la Grande", "Independencia de la India", "Mahatma Gandhi", "Nelson Mandela", "Martin Luther King", "Guerra de los Seis Días", "Guerra de Malvinas", "Canal de Suez", "Batalla de Stalingrado", "Día D", "Pearl Harbor", "Holocausto", "Juicios de Núremberg", "Creación de la ONU", "Guerra de Afganistán", "Revolución de Terciopelo", "Unificación Alemana", "Unificación Italiana", "Paz de Westfalia", "Batalla de Gettysburg", "Imperio Bizantino", "Ruta de la Seda", "Pacto de Varsovia", "OTAN", "Crisis de los Misiles", "Guerra de Opio", "Batalla de Lepanto", "Invencible Armada", "Guerra de Crimea", "Revolución de los Claveles", "Batalla de Ayacucho", "Independencia de Chile", "Independencia de Brasil"],
             "ciencias": ["Teoría de la Relatividad", "ADN", "Tabla Periódica", "Fotosíntesis", "Agujeros Negros", "Leyes de Newton", "Evolución de las especies", "Big Bang", "Mecánica Cuántica", "Átomo", "Sistema Inmune", "Placas Tectónicas", "Genética", "Termodinámica", "Electromagnetismo", "Neuronas", "Ciclo del Agua", "Fusión Nuclear", "Gravedad", "Microbiología", "Efecto Doppler", "Principio de Arquímedes", "Teorema de Pitágoras", "Célula Procariota", "Célula Eucariota", "Mitocondria", "Entropía", "Velocidad de la luz", "Bosón de Higgs", "Superconductividad", "Nanotecnología", "Inteligencia Artificial", "Clonación", "Vacunas", "Antibióticos", "Penicilina", "Teoría de cuerdas", "Materia oscura", "Energía oscura", "Leyes de Kepler", "Efecto invernadero", "Capa de ozono", "Radiación electromagnética", "Rayos X", "Radiactividad", "Tabla de elementos", "Enlaces químicos", "pH", "Enzimas", "Proteínas", "Lípidos", "Carbohidratos", "Fermentación", "Respiración celular", "Meiosis", "Mitosis", "Ley de Ohm", "Ley de Boyle", "Ley de Charles", "Efecto fotoeléctrico", "Relatividad especial", "Relatividad general", "Física de partículas", "Rayos Gamma", "Inercia", "Fuerza centrífuga", "Óptica", "Refracción", "Reflexión", "Sintaxis neuronal", "Corteza cerebral", "Sistema endocrino", "Hormonas", "Dopamina", "Serotonina", "Biodiversidad", "Ecosistemas", "Selección natural", "Mutación", "Paleontología", "Arqueología", "Astronomía", "Galaxias", "Exoplanetas", "Supernovas", "Enanas blancas", "Púlsares", "Quásares", "Telescopio Hubble", "Acelerador de partículas", "Sismología", "Meteorología", "Hidrología", "Botánica", "Zoología", "Entomología", "Anatomía", "Fisiología", "Química orgánica", "Química inorgánica"],
             "marcas": ["Apple", "Coca-Cola", "Toyota", "Google", "Nike", "Microsoft", "Amazon", "Samsung", "Disney", "Mercedes-Benz", "Lego", "McDonald's", "Tesla", "Sony", "Adidas", "Starbucks", "Nintendo", "Ford", "Ikea", "Ferrari", "Pepsi", "Walmart", "Meta", "Instagram", "TikTok", "Netflix", "Spotify", "Uber", "Airbnb", "Visa", "Mastercard", "American Express", "Pfizer", "Johnson & Johnson", "Bayer", "General Electric", "IBM", "Intel", "HP", "Dell", "Oracle", "Adobe", "Cisco", "SpaceX", "Boeing", "Airbus", "Shell", "ExxonMobil", "BP", "Nestlé", "Unilever", "Procter & Gamble", "Zara", "H&M", "Gucci", "Prada", "Louis Vuitton", "Rolex", "Cartier", "Chanel", "BMW", "Audi", "Volkswagen", "Porsche", "Honda", "Hyundai", "Kia", "Nissan", "Red Bull", "Monster Energy", "Heineken", "Budweiser", "Corona", "Nescafé", "Dove", "L'Oréal", "Sephora", "Gillette", "Colgate", "Pampers", "Kellogg's", "Danone", "General Mills", "Bosch", "Siemens", "Philips", "Panasonic", "Canon", "Nikon", "Casio", "Yamaha", "LinkedIn", "WhatsApp", "Zoom", "Slack", "Salesforce", "Twitter", "eBay", "PayPal", "FedEx"],
             "deportistas": ["Lionel Messi", "Michael Jordan", "Roger Federer", "Serena Williams", "Usain Bolt", "Muhammad Ali", "Tiger Woods", "Diego Maradona", "Simone Biles", "Cristiano Ronaldo", "Rafael Nadal", "Lewis Hamilton", "Michael Phelps", "Ayrton Senna", "LeBron James", "Pele", "Tom Brady", "Steffi Graf", "Valentino Rossi", "Kobe Bryant", "Novak Djokovic", "Mike Tyson", "Zinedine Zidane", "Ronaldinho", "Ronaldo Nazário", "Johan Cruyff", "Franz Beckenbauer", "Alfredo Di Stéfano", "Roberto Clemente", "Jackie Robinson", "Babe Ruth", "Mickey Mantle", "Wayne Gretzky", "Mario Lemieux", "Alexander Ovechkin", "Sidney Crosby", "Shaquille O'Neal", "Magic Johnson", "Larry Bird", "Kareem Abdul-Jabbar", "Wilt Chamberlain", "Stephen Curry", "Kevin Durant", "Giannis Antetokounmpo", "Luka Doncic", "Max Verstappen", "Michael Schumacher", "Sebastian Vettel", "Alain Prost", "Niki Lauda", "Fernando Alonso", "Kelly Slater", "Tony Hawk", "Shaun White", "Andre Agassi", "Pete Sampras", "Björn Borg", "John McEnroe", "Maria Sharapova", "Venus Williams", "Martina Navratilova", "Monica Seles", "Naomi Osaka", "Allyson Felix", "Yelena Isinbayeva", "Carl Lewis", "Jesse Owens", "Haile Gebrselassie", "Eliud Kipchoge", "Mo Farah", "Ian Thorpe", "Mark Spitz", "Katie Ledecky", "Caeleb Dressel", "Nadia Comăneci", "Larisa Latynina", "Kohei Uchimura", "Vitaly Scherbo", "Manny Pacquiao", "Floyd Mayweather", "Canelo Álvarez", "Sugar Ray Leonard", "Rocky Marciano", "Joe Louis", "Oscar De La Hoya", "Conor McGregor", "Ronda Rousey", "Khabib Nurmagomedov", "Phil Mickelson", "Jack Nicklaus", "Arnold Palmer", "Annika Sörenstam", "Lorena Ochoa", "Marta Vieira da Silva", "Megan Rapinoe", "Alex Morgan", "Yulimar Rojas", "Egan Bernal", "Richard Carapaz", "Juan Manuel Fangio"],
-            "musica": ["The Beatles", "Queen", "Michael Jackson", "Led Zeppelin", "Pink Floyd", "Madonna", "The Rolling Stones", "David Bowie", "Daft Punk", "Shakira", "Nirvana", "Elvis Presley", "Metallica", "Beyoncé", "AC/DC", "Bob Marley", "The Cure", "Radiohead", "Adele", "Coldplay", "U2", "Guns N' Roses", "Aerosmith", "Bon Jovi", "Iron Maiden", "Black Sabbath", "Judas Priest", "Deep Purple", "The Who", "The Doors", "Jimi Hendrix", "Eric Clapton", "Stevie Wonder", "Prince", "Whitney Houston", "Aretha Franklin", "Frank Sinatra", "Ella Fitzgerald", "Louis Armstrong", "Miles Davis", "John Coltrane", "Bob Dylan", "Bruce Springsteen", "Neil Young", "Johnny Cash", "Willie Nelson", "Dolly Parton", "Taylor Swift", "Ed Sheeran", "Bruno Mars", "Lady Gaga", "Rihanna", "Katy Perry", "Justin Bieber", "Ariana Grande", "Drake", "Eminem", "Jay-Z", "Kanye West", "Kendrick Lamar", "Snoop Dogg", "Dr. Dre", "Tupac Shakur", "Notorious B.I.G.", "Gorillaz", "Oasis", "Blur", "Arctic Monkeys", "Muse", "Foo Fighters", "Red Hot Chili Peppers", "Pearl Jam", "Soundgarden", "Linkin Park", "Green Day", "Blink-182", "Ramones", "Sex Pistols", "The Clash", "Joy Division", "New Order", "Depeche Mode", "Pet Shop Boys", "ABBA", "Bee Gees", "Fleetwood Mac", "Eagles", "Journey", "Dire Straits", "The Police", "Sting", "Phil Collins", "Genesis", "Elton John", "Billy Joel", "George Michael", "Amy Winehouse", "Lana Del Rey", "Billie Eilish", "Rosalía"]
+            "musica": ["The Beatles", "Queen", "Michael Jackson", "Led Zeppelin", "Pink Floyd", "Madonna", "The Rolling Stones", "David Bowie", "Daft Punk", "Shakira", "Nirvana", "Elvis Presley", "Metallica", "Beyoncé", "AC/DC", "Bob Marley", "The Cure", "Radiohead", "Adele", "Coldplay", "U2", "Guns N' Roses", "Aerosmith", "Bon Jovi", "Iron Maiden", "Black Sabbath", "Judas Priest", "Deep Purple", "The Who", "The Doors", "Jimi Hendrix", "Eric Clapton", "Stevie Wonder", "Prince", "Whitney Houston", "Aretha Franklin", "Frank Sinatra", "Ella Fitzgerald", "Louis Armstrong", "Miles Davis", "John Coltrane", "Bob Dylan", "Bruce Springsteen", "Neil Young", "Johnny Cash", "Willie Nelson", "Dolly Parton", "Taylor Swift", "Ed Sheeran", "Bruno Mars", "Lady Gaga", "Rihanna", "Katy Perry", "Justin Bieber", "Ariana Grande", "Drake", "Eminem", "Jay-Z", "Kanye West", "Kendrick Lamar", "Snoop Dogg", "Dr. Dre", "Tupac Shakur", "Notorious B.I.G.", "Gorillaz", "Oasis", "Blur", "Arctic Monkeys", "Muse", "Foo Fighters", "Red Hot Chili Peppers", "Pearl Jam", "Soundgarden", "Linkin Park", "Green Day", "Blink-182", "Ramones", "Sex Pistols", "The Clash", "Joy Division", "New Order", "Depeche Mode", "Pet Shop Boys", "ABBA", "Bee Gees", "Fleetwood Mac", "Eagles", "Journey", "Dire Straits", "The Police", "Sting", "Phil Collins", "Genesis", "Elton John", "Billy Joel", "George Michael", "Amy Winehouse", "Lana Del Rey", "Billie Eilish", "Rosalía"],
+            "libros": ["Don Quijote de la Mancha", "1984", "Orgullo y prejuicio", "Cien años de soledad", "El gran Gatsby", "La Odisea", "La Ilíada", "Divina Comedia", "Crimen y castigo", "Madame Bovary", "Ulises", "Moby Dick", "En busca del tiempo perdido", "El retrato de Dorian Gray", "El principito", "Hamlet", "Romeo y Julieta", "La metamorfosis", "Drácula", "Frankenstein", "Crónica de una muerte anunciada", "Rayuela", "Pedro Páramo", "El amor en los tiempos del cólera", "La casa de los espíritus", "Los miserables", "Ana Karenina", "Guerra y paz", "El guardián entre el centeno", "Matar a un ruiseñor", "El alquimista", "El código Da Vinci", "Harry Potter y la piedra filosofal", "El señor de los anillos", "Las crónicas de Narnia", "Cumbres borrascosas", "Jane Eyre", "Oliver Twist", "Grandes esperanzas", "Los pilares de la tierra", "La sombra del viento", "Ensayo sobre la ceguera", "Fahrenheit 451", "Un mundo feliz", "Rebelión en la granja", "El nombre de la rosa", "Los juegos del hambre", "El diario de Ana Frank", "Siddhartha", "El lobo estepario", "Lolita", "El extranjero", "La náusea", "Así habló Zaratustra", "Fausto", "Robinson Crusoe", "Los viajes de Gulliver", "La isla del tesoro", "El conde de Montecristo", "Los tres mosqueteros", "El perfume", "Aura", "El túnel", "Sobre héroes y tumbas", "Ficciones", "El Aleph", "La tregua", "Gracias por el fuego", "Los detectives salvajes", "2666", "El cantar de mio Cid", "El lazarillo de Tormes", "La Celestina", "Doña Perfecta", "Fortunata y Jacinta", "Pepita Jiménez", "La regenta", "Niebla", "San Manuel Bueno, mártir", "La familia de Pascual Duarte", "Nada", "Entre visillos", "Cinco horas con Mario", "El camino", "Corazón tan blanco", "Soldados de Salamina", "Patria", "La ciudad de los prodigios", "Sin noticias de Gurb", "Las amistades peligrosas", "Justine", "Trópico de Cáncer", "El amante de Lady Chatterley", "La insoportable levedad del ser", "El dios de las pequeñas cosas", "Hijos de la medianoche", "Tokio Blues", "Kafka en la orilla", "Los hermanos Karamazov", "Relato de un náufrago"],
+            "objetos": ["Brújula", "Telescopio", "Microscopio", "Máquina de escribir", "Reloj de arena", "Gramófono", "Fonógrafo", "Teletipo", "Grapadora", "Perforadora", "Escuadra", "Cartabón", "Transportador", "Compás", "Sacapuntas", "Pincel", "Caballete", "Paleta", "Espátula", "Mortero", "Embudo", "Probeta", "Matraz", "Mechero Bunsen", "Imán", "Dinamómetro", "Barómetro", "Higrómetro", "Termómetro", "Estetoscopio", "Esfigmomanómetro", "Termo", "Cantimplora", "Mochila", "Linterna", "Navaja suiza", "Martillo", "Serrucho", "Destornillador", "Alicates", "Llave inglesa", "Nivel de burbuja", "Flexómetro", "Taladro", "Lijadora", "Escalera de mano", "Carretilla", "Regadera", "Azada", "Rastrillo", "Guadaña", "Hoz", "Molino de café", "Tostadora", "Licuadora", "Batidora", "Exprimidor", "Cafetera", "Tetera", "Samovar", "Candelabro", "Farol", "Quinqué", "Candil", "Estufa de leña", "Chimenea", "Fuelle", "Yunque", "Forja", "Crisol", "Torno", "Fresadora", "Gato hidráulico", "Extintor", "Manguera", "Hidrante", "Megáfono", "Walkie-talkie", "Telégrafo", "Fax", "Escáner", "Impresora", "Altavoz", "Auriculares", "Micrófono", "Proyector", "Pantalla", "Trípode", "Claqueta", "Carrete fotográfico", "Negativo", "Diapositiva", "Lupa", "Monóculo", "Prismáticos", "Periscopio", "Caleidoscopio", "Metrónomo", "Diapasón", "Reloj de sol"],
+            "series": ["Breaking Bad", "Game of Thrones", "Friends", "The Office", "Stranger Things", "The Crown", "Lost", "The Mandalorian", "Black Mirror", "Seinfeld", "The Sopranos", "Succession", "Mad Men", "Dark", "The Bear", "Grey's Anatomy", "House", "The Boys", "Ted Lasso", "The Wire", "Twin Peaks", "Peaky Blinders", "Chernobyl", "Better Call Saul", "Money Heist", "Squid Game", "The Last of Us", "Simpsons", "South Park", "Rick and Morty", "Futurama", "X-Files", "BoJack Horseman", "Fleabag", "The Witcher"],
+            "lugares": ["Torre Eiffel", "Gran Muralla China", "Coliseo Romano", "Estatua de la Libertad", "Taj Mahal", "Machu Picchu", "Pirámides de Giza", "Petra", "Acrópolis de Atenas", "Cristo Redentor", "Chichén Itzá", "Burj Khalifa", "Sagrada Familia", "Big Ben", "Ópera de Sídney", "Puente de Brooklyn", "Alhambra", "Kremlin", "Monte Saint-Michel", "Angkor Wat", "Louvre", "Torre de Pisa", "Empire State", "Notre Dame", "Ciudad del Vaticano", "Times Square", "Golden Gate Bridge", "Stonehenge", "Basílica de San Pedro", "Fushimi Inari", "Plaza Roja", "Monte Rushmore", "Buckingham Palace", "Central Park", "Parque Güell", "Fuente de Trevi", "Hollywood Sign", "Isla de Pascua", "Cataratas Victoria", "Burj Al Arab", "Mezquita Azul", "Templo del Loto", "Casa Blanca", "Grand Canyon", "Muralla de Ávila", "Mezquita de Córdoba", "Catedral de Colonia", "Tower Bridge", "Pantaleón", "Capadocia"],
+            "arte": ["Mona Lisa", "La noche estrellada", "El Grito", "Nacimiento de Venus", "Guernica", "Las Meninas", "La última cena", "El jardín de las delicias", "La joven de la perla", "Persistencia de la memoria", "Impresión sol naciente", "Libertad guiando al pueblo", "American Gothic", "El beso", "El hijo del hombre", "Los girasoles", "La creación de Adán", "David de Miguel Ángel", "La Venus de Milo", "El pensador", "Escuela de Atenas", "Almuerzo sobre la hierba", "Mujer con sombrilla", "La muerte de Marat", "Nighthawks", "Caminante sobre nubes", "Olympia", "Saturno devorando a su hijo", "Fusilamientos 3 de mayo", "Composición rojo azul", "Autorretrato Frida", "Los amantes", "El coloso", "Baco", "Comedores de patatas"],
+            "gastronomia": ["Sushi", "Pizza Margarita", "Tacos al pastor", "Paella", "Hamburguesa", "Croissant", "Ramen", "Dim Sum", "Ceviche", "Lasaña", "Pad Thai", "Croque Monsieur", "Fish and Chips", "Risotto", "Falafel", "Hummus", "Poutine", "Feijoada", "Gazpacho", "Guacamole", "Churros", "Macarons", "Baklava", "Tiramisú", "Moussaka", "Goulash", "Fondue", "Kimchi", "Bibimbap", "Mole poblano", "Tortilla de patatas", "Arepa", "Pato pekines", "Pho", "Gelato"],
+            "personajes": ["Batman", "Superman", "Spider-Man", "Sherlock Holmes", "James Bond", "Harry Potter", "Darth Vader", "Luke Skywalker", "Wonder Woman", "Iron Man", "Capitán América", "Hulk", "Wolverine", "Thor", "Joker", "Katniss Everdeen", "Frodo Bolsón", "Gandalf", "Gollum", "Hércules Poirot", "Drácula", "Frankenstein", "El Grinch", "Mickey Mouse", "Pato Donald", "Bugs Bunny", "Homer Simpson", "Peter Griffin", "Bob Esponja", "Pikachu", "Mario", "Link", "Zelda", "Kratos", "Lara Croft", "Master Chief", "Nathan Drake", "Jon Snow", "Daenerys Targaryen", "Walter White", "Don Draper", "Tony Soprano", "Michael Scott", "Indiana Jones", "Han Solo", "Jack Sparrow", "Rick Sanchez", "Morty Smith", "Optimus Prime", "Scooby-Doo"]
         };
 
+        let availablePool = [];
         let timeLeft = 30;
         let timerInterval;
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-        // Función para generar un "Beep" de fin de tiempo
+        function hardReset() {
+            availablePool = [];
+            for (let cat in originalData) {
+                originalData[cat].forEach(item => availablePool.push(item));
+            }
+            alert("Mazo reseteado con 1,105 palabras.");
+            nextRound();
+        }
+
         function playEndSound() {
-            const oscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-
-            oscillator.type = 'square';
-            oscillator.frequency.setValueAtTime(440, audioCtx.currentTime); // Nota La
-            oscillator.frequency.exponentialRampToValueAtTime(110, audioCtx.currentTime + 0.5);
-            
-            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-
-            oscillator.start();
-            oscillator.stop(audioCtx.currentTime + 0.5);
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(330, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(110, audioCtx.currentTime + 0.6);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.6);
         }
 
         function startTimer() {
@@ -172,9 +198,7 @@
             timerInterval = setInterval(() => {
                 timeLeft--;
                 timerDisplay.innerText = timeLeft;
-
                 if (timeLeft <= 5) timerDisplay.classList.add('timer-warning');
-
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
                     timerDisplay.innerText = "¡FIN!";
@@ -183,36 +207,38 @@
             }, 1000);
         }
 
-        function refreshApp() {
-            // Desbloquear audio en navegadores modernos tras click
+        function nextRound() {
             if (audioCtx.state === 'suspended') audioCtx.resume();
-
             const list = document.getElementById('options-list');
+            const counter = document.getElementById('counter');
             list.innerHTML = '';
-            
-            const categorias = Object.keys(database);
-            const seleccionadas = categorias.sort(() => 0.5 - Math.random()).slice(0, 5);
 
-            seleccionadas.forEach(cat => {
-                const items = database[cat];
-                const itemRandom = items[Math.floor(Math.random() * items.length)];
-                
+            if (availablePool.length < 5) {
+                alert("Mazo agotado. ¡Reiniciando automáticamente!");
+                hardReset();
+                return;
+            }
+
+            for (let i = 0; i < 5; i++) {
+                const randomIndex = Math.floor(Math.random() * availablePool.length);
+                const item = availablePool.splice(randomIndex, 1)[0];
                 const li = document.createElement('li');
                 li.className = 'option-item';
-                li.innerText = itemRandom;
-                
-                // Evento para marcar en verde
-                li.onclick = function() {
-                    this.classList.toggle('done');
-                };
-
+                li.innerText = item;
+                li.onclick = function() { this.classList.toggle('done'); };
                 list.appendChild(li);
-            });
+            }
 
+            counter.innerText = `MAZO: ${availablePool.length} RESTANTES`;
             startTimer();
         }
 
-        window.onload = refreshApp;
+        window.onload = () => {
+            for (let cat in originalData) {
+                originalData[cat].forEach(item => availablePool.push(item));
+            }
+            nextRound();
+        };
     </script>
 </body>
 </html>
